@@ -7,7 +7,6 @@ namespace netwebapi.Models
     {
         Knight,
         Mage,
-
         Cleric
     }
 }
