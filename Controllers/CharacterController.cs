@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using netwebapi.Dtos.Character;
 using netwebapi.Models;
@@ -9,6 +11,7 @@ using netwebapi.Services.CharacterService;
 
 namespace netwebapi.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class CharacterController : ControllerBase
@@ -22,10 +25,13 @@ namespace netwebapi.Controllers
         }
 
         /*we can combine these two lines together*/
+        //[AllowAnonymous]
         [HttpGet]
         [Route("GetAll")]
         public async Task<ActionResult<ServiceResponse<List<GetCharacterDto>>>> Get()
         {
+            int id = int.Parse(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value);
+
             return Ok(await _characterService.GetAllCharacters());
         }
 

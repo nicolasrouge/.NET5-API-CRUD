@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using netwebapi.Dtos.Character;
+using netwebapi.Dtos.Weapon;
 using netwebapi.Models;
 
 namespace netwebapi
@@ -14,6 +15,7 @@ namespace netwebapi
         {
             CreateMap<Character, GetCharacterDto>();
             CreateMap<AddCharacterDto, Character>();
+            CreateMap<Weapon, GetWeaponDto>();
         }
     }
 }

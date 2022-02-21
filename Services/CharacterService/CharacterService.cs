@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using netwebapi.Data;
 using netwebapi.Dtos.Character;
@@ -14,20 +16,28 @@ namespace netwebapi.Services.CharacterService
     {
         private readonly IMapper _mapper;
         private readonly DataContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CharacterService(IMapper mapper, DataContext context)
+        public CharacterService(IMapper mapper, DataContext context, IHttpContextAccessor httpContextAccessor)
         {
+            _httpContextAccessor = httpContextAccessor;
             _context = context;
             _mapper = mapper;
         }
+
+        private int GetUserId() => int.Parse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+
         public async Task<ServiceResponse<List<GetCharacterDto>>> AddCharacter(AddCharacterDto newCharacter)
         {
             var serviceReponse = new ServiceResponse<List<GetCharacterDto>>();
             Character character = _mapper.Map<Character>(newCharacter);
+            character.User = await _context.Users.FirstOrDefaultAsync(u => u.Id == GetUserId());
             _context.Characters.Add(character);
             var dbCharacters = await _context.Characters.ToListAsync();
             await _context.SaveChangesAsync();
-            serviceReponse.Data = await _context.Characters.Select(c=> _mapper.Map<GetCharacterDto>(c)).ToListAsync();
+            serviceReponse.Data = await _context.Characters
+            .Where(c => c.User.Id == GetUserId())
+            .Select(c=> _mapper.Map<GetCharacterDto>(c)).ToListAsync();
             return serviceReponse;
         }
 
@@ -37,11 +47,18 @@ namespace netwebapi.Services.CharacterService
             var dbCharacters = await _context.Characters.ToListAsync();
 
             try{
-            Character character = await _context.Characters.FirstAsync(c => c.Id == id);
-            _context.Characters.Remove(character);
-            await _context.SaveChangesAsync();
+            Character character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == id && c.User.Id == GetUserId());
 
-            serviceReponse.Data = _context.Characters.Select(c=> _mapper.Map<GetCharacterDto>(c)).ToList();
+            if(character != null){
+                _context.Characters.Remove(character);
+                await _context.SaveChangesAsync();
+
+                serviceReponse.Data = _context.Characters.Where(c => c.User.Id == GetUserId()).Select(c=> _mapper.Map<GetCharacterDto>(c)).ToList();
+            }else{
+                            serviceReponse.Success = false;
+                serviceReponse.Message = "character not found";
+            }
+            
             }catch(Exception ex){
                 serviceReponse.Success = false;
                 serviceReponse.Message = ex.Message;
@@ -55,7 +72,7 @@ namespace netwebapi.Services.CharacterService
                         var serviceReponse = new ServiceResponse<List<GetCharacterDto>>();
 
             try{
-            var dbCharacters = await _context.Characters.ToListAsync();
+            var dbCharacters = await _context.Characters.Where(c => c.User.Id == GetUserId()).ToListAsync();
             serviceReponse.Data = dbCharacters.Select(c=> _mapper.Map<GetCharacterDto>(c)).ToList();
             }catch(Exception ex){
                 serviceReponse.Success = false;
@@ -67,7 +84,7 @@ namespace netwebapi.Services.CharacterService
         public async Task<ServiceResponse<GetCharacterDto>> GetCharacterById(int id)
         {
             var serviceReponse = new ServiceResponse<GetCharacterDto>();
-            var dbCharacters = await _context.Characters.FirstOrDefaultAsync(c => c.Id == id);
+            var dbCharacters = await _context.Characters.FirstOrDefaultAsync(c => c.Id == id && c.User.Id == GetUserId());
             serviceReponse.Data = _mapper.Map<GetCharacterDto>(dbCharacters);
 
             return serviceReponse;
@@ -78,18 +95,28 @@ namespace netwebapi.Services.CharacterService
             var serviceReponse = new ServiceResponse<GetCharacterDto>();
 
             try{
-            Character character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == updateCharacter.Id);
-            
-            character.Name = updateCharacter.Name;
-            character.HitPoints = updateCharacter.HitPoints;
-            character.Strength = updateCharacter.Strength;
-            character.Defense = updateCharacter.Defense;
-            character.Intelligence = updateCharacter.Intelligence;
-            character.Class = updateCharacter.Class;
+            Character character = await _context.Characters
+            .Include(c => c.User)
+            .FirstOrDefaultAsync(c => c.Id == updateCharacter.Id);
 
-            await _context.SaveChangesAsync();
 
-            serviceReponse.Data = _mapper.Map<GetCharacterDto>(character);
+            if(character.User.Id == GetUserId()){
+                character.Name = updateCharacter.Name;
+                character.HitPoints = updateCharacter.HitPoints;
+                character.Strength = updateCharacter.Strength;
+                character.Defense = updateCharacter.Defense;
+                character.Intelligence = updateCharacter.Intelligence;
+                character.Class = updateCharacter.Class;
+
+                await _context.SaveChangesAsync();
+
+                serviceReponse.Data = _mapper.Map<GetCharacterDto>(character);
+            }else{
+                serviceReponse.Success = false;
+                serviceReponse.Message = "character not found";
+            }
+
+
             }catch(Exception ex){
                 serviceReponse.Success = false;
                 serviceReponse.Message = ex.Message;
