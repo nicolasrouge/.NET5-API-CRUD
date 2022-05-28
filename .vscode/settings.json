@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/5a25aff8-b52b-4e62-8a12-0d2b5f52bb6e/microsoft.web/sites/subscriptions/5a25aff8-b52b-4e62-8a12-0d2b5f52bb6e/resourceGroups/portfolioNickAPI_group/providers/Microsoft.Web/sites/portfolioNickAPI",
+    "appService.deploySubpath": "publish"
+}

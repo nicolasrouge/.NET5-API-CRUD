@@ -21,7 +21,6 @@ namespace netwebapi.Controllers
 
         [HttpPost]
         [Route("Register")]
-
         public async Task<ActionResult<ServiceResponse<int>>> Register(UserRegisterDto request){
 
             var response = await _authRepository.Register(

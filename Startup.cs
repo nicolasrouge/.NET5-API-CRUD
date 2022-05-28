@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using netwebapi.Data;
 using netwebapi.Services.CharacterService;
+using netwebapi.Services.FightService;
 using netwebapi.Services.WeaponService;
 using Swashbuckle.AspNetCore.Filters;
 
@@ -46,8 +47,8 @@ namespace netwebapi
             services.AddAutoMapper(typeof(Startup));
             services.AddScoped<ICharacterService, CharacterService>();
             services.AddScoped<IWeaponService, WeaponService>();
-
             services.AddScoped<IAuthRepository, AuthRepository>();
+            services.AddScoped<IFightService, FightService>();
             
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options => {
                 options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters{
