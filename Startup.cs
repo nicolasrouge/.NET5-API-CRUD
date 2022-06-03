@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -48,7 +49,14 @@ namespace netwebapi
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "netwebapi", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo 
+                    { 
+                    Title = ".NET 5 Web API", 
+                    Description ="This is a demo with Authentification, file Uploader and few endpoints. The API is currently hosted in Azure but the DB desactivated on Live to avoid any costs for now.", 
+                    Version = "v1",
+                    Contact = new OpenApiContact {Name= "Nicolas Rouge", Email="nicolas.rouge777@gmail.com", Url = new Uri("https://portfolionicolasrougecv.gatsbyjs.io/", UriKind.Absolute)},
+                    }
+                );
                 c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
                 {
                     Description = "Standard Authorization header using the Bearer scheme, Example: \"bearer {token}\"",
