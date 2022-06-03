@@ -89,10 +89,7 @@ namespace netwebapi
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "netwebapi v1");
                 c.RoutePrefix = string.Empty;
             });
-            app.UseStaticFiles(new StaticFileOptions{
-                FileProvider = new PhysicalFileProvider(Path.Combine(env.ContentRootPath, "Images")),
-                RequestPath = "/Images"
-            });
+            app.UseStaticFiles();
             app.UseHttpsRedirection();
             app.UseRouting();
             app.UseCors(MyAllowSpecificOrigins);
